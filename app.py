@@ -90,9 +90,9 @@ questions = [
     {
         "question": "4. 如果你成为导演，你最想拍哪种类型的电影？",
         "options": {
-            "A. 先锋实验电影，如《圣山》": {"经典 ↔ 先锋": 2, "商业 ↔ 独立": 2, "大众影迷 ↔ 硬核影迷": 1},
+            "A. 先锋实验电影，如《圣山》": {"经典 ↔ 先锋": 2, "商业 ↔ 独立": 1, "大众影迷 ↔ 硬核影迷": 1},
             "B. 商业大片，如《阿凡达》": {"商业 ↔ 独立": -2, "大众影迷 ↔ 硬核影迷": -1},
-            "C. 讲述少数民族/移民故事，如《别告诉她》《摘金奇缘》": {"保守 ↔ 开放": 2, "非女权 ↔ 女权": 1, "商业 ↔ 独立": -1},
+            "C. 讲述少数民族/移民故事，如《别告诉她》《摘金奇缘》": {"保守 ↔ 开放": 2, "非女权 ↔ 女权": 1},
             "D. 表现女性坚韧但强调家庭价值观，如《母亲》《生活多美好》": {"非女权 ↔ 女权": 1, "保守 ↔ 开放": -2}
         }
     },
@@ -154,7 +154,7 @@ questions = [
         "question": "11. 你怎么看待黑白电影？",
         "options": {
             "A. 黑白电影更有质感，应该被更多人欣赏": {"大众影迷 ↔ 硬核影迷": 1},
-            "B. 电影应该不断进化，黑白片是过去的遗产": {"商业 ↔ 独立": -1},
+            "B. 电影应该不断进化，黑白片是过去的遗产": {"经典 ↔ 先锋": 1},
             "C. 黑白是一种艺术表达方式，不应消失": {"经典 ↔ 先锋": -1},
             "D. 现实题材的黑白片能增加真实感": {"商业 ↔ 独立": 1}
         }
@@ -163,7 +163,7 @@ questions = [
         "question": "12. 你更喜欢的导演是哪种类型？",
         "options": {
             "A. 突破叙事规则的导演，如戈达尔、拉斯·冯·提尔": {"经典 ↔ 先锋": 1},
-            "B. 票房大导演，如诺兰、斯皮尔伯格": {"商业 ↔ 独立": -1},
+            "B. 票房大导演，如诺兰、斯皮尔伯格": {"商业 ↔ 独立": -2},
             "C. 关注社会问题的导演，如是枝裕和、李沧东": {"保守 ↔ 开放": 1},
             "D. 经典大师，如库布里克、黑泽明": {"经典 ↔ 先锋": -1}
         }
@@ -181,7 +181,7 @@ questions = [
         "question": "14. 你怎么看待动画电影？",
         "options": {
             "A. 动画电影不只是给孩子看的，比如宫崎骏、今敏的作品": {"大众影迷 ↔ 硬核影迷": 1},
-            "B. 动画电影是最有商业潜力的电影类型": {"商业 ↔ 独立": -1},
+            "B. 动画电影是最有商业潜力的电影类型": {"商业 ↔ 独立": -2},
             "C. 动画可以是艺术，比如《疯狂世界》": {"经典 ↔ 先锋": 1},
             "D. 经典的手绘动画比 3D 动画更有魅力": {"经典 ↔ 先锋": -1}
         }
@@ -227,24 +227,53 @@ if st.button("提交测试并查看结果"):
         '得分': list(normalized_scores.values())
     })
 
-    # 使用 Altair 画彩色条形图，左红右绿，含0参考线
+    # 为了让 0 分也可视化，加一个“绘图用的微小值”
+    df["绘图得分"] = df["得分"].apply(lambda x: x if abs(x) > 0.01 else 0.01)
+
+    # 用于颜色映射
+    def score_category(x):
+        if x > 0:
+            return "正"
+        elif x < 0:
+            return "负"
+        else:
+            return "中立"
+        
+    df["颜色类型"] = df["得分"].apply(score_category)
+
+    color_scale = alt.Scale(
+        domain=["正", "负", "中立"],
+        range=["#1f77b4", "#ff7f0e", "#aaaaaa"]
+    )
+
+    # 条形图主体
     chart = alt.Chart(df).mark_bar().encode(
-        x=alt.X('得分:Q', scale=alt.Scale(domain=[-1, 1])),
+        x=alt.X('绘图得分:Q', scale=alt.Scale(domain=[-1, 1])),
         y=alt.Y('维度:N', sort='-x'),
-        color=alt.condition(
-            'datum.得分 >= 0',
-            alt.value('#1f77b4'),  # 蓝色：偏右
-            alt.value('#ff7f0e')   # 橙色：偏左
-        )
+        color=alt.Color('颜色类型:N', scale=color_scale, legend=None)
     ).properties(
         height=400
     )
 
-    # 添加 0 轴线
-    zero_line = alt.Chart(pd.DataFrame({'得分': [0]})).mark_rule(color='black', strokeDash=[3,3]).encode(
-        x='得分:Q'
+    # 添加数值文本
+    text = alt.Chart(df).mark_text(
+        align='left',
+        baseline='middle',
+        dx=3,
+        fontSize=12
+    ).encode(
+        x='绘图得分:Q',
+        y=alt.Y('维度:N', sort='-x'),
+        text=alt.Text('得分:Q', format=".2f")
     )
 
-    st.altair_chart(chart + zero_line, use_container_width=True)
+    # 添加 0 轴线
+    zero_line = alt.Chart(pd.DataFrame({'得分': [0]})).mark_rule(
+        color='black',
+        strokeDash=[3, 3]
+    ).encode(x='得分:Q')
+
+    # 显示最终图表
+    st.altair_chart(chart + text + zero_line, use_container_width=True)
 
     display_paired_dimension_analysis(normalized_scores)
