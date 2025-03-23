@@ -3,6 +3,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import altair as alt
 import pandas as pd
+import base64
+
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+img_base64 = get_base64_image("logo.jpg")
+
+st.markdown(
+    f"""
+    <div style='text-align: center;'>
+        <img src='data:image/jpeg;base64,{img_base64}' width='200'/>
+        <h3 style='margin-bottom: 0.2rem;'>🎥 <a href="https://www.startfilmstudio.org/" target="_blank" style="text-decoration: none; color: inherit;">STArt Film Studio</a></h3>
+        <p style='font-size: 0.9rem; color: gray;'>Find Your Voice</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 st.title("🎬 电影版《思想辩证区域》测试题")
 st.write("请直觉作答，不要思考太久，每题选出你认同的选项（可多选）。")
