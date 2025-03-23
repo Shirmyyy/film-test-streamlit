@@ -34,6 +34,7 @@ dimensions = {
     "经典 ↔ 先锋": 0,
     "大众影迷 ↔ 硬核影迷": 0
 }
+dimension_order = list(dimensions.keys())
 
 # 每个子维度的解释
 subdimension_analysis = {
@@ -70,10 +71,10 @@ def display_paired_dimension_analysis(norm_scores):
             st.markdown(f"**{pair}：{score:.2f}（中立）**")
             st.caption("你在这个维度上展现出较为平衡或多元的倾向。")
         elif score > 0:
-            st.markdown(f"**倾向：{right} 分数：{score:.2f}**")
+            st.markdown(f"**倾向：{right} {score:.2f}分**")
             st.caption(subdimension_analysis.get(right, "暂无解释"))
         else:
-            st.markdown(f"**倾向：{left} 分数：{-score:.2f}**")
+            st.markdown(f"**倾向：{left} {score:.2f}分**")
             st.caption(subdimension_analysis.get(left, "暂无解释"))
 
 
@@ -271,7 +272,7 @@ if st.button("提交测试并查看结果"):
     # 条形图主体
     chart = alt.Chart(df).mark_bar().encode(
         x=alt.X('绘图得分:Q', scale=alt.Scale(domain=[-1, 1])),
-        y=alt.Y('维度:N', sort='-x'),
+        y=alt.Y('维度:N', sort=dimension_order),
         color=alt.Color('颜色类型:N', scale=color_scale, legend=None)
     ).properties(
         height=400
@@ -284,8 +285,7 @@ if st.button("提交测试并查看结果"):
         dx=3,
         fontSize=12
     ).encode(
-        x='绘图得分:Q',
-        y=alt.Y('维度:N', sort='-x'),
+        y=alt.Y('维度:N', sort=dimension_order),
         text=alt.Text('得分:Q', format=".2f")
     )
 
