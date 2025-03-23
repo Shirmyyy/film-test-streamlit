@@ -206,11 +206,13 @@ for dim in dimensions:
 
 for idx, q in enumerate(questions):
     st.subheader(q["question"])
-    choice = st.radio("选择你的答案：", list(q["options"].keys()), key=f"q{idx}")
-    effects = q["options"][choice]
-    for dim, value in effects.items():
-        total_scores[dim] += value
-        total_scores_absol[dim] += abs(value)
+    choices = st.multiselect("选择你认同的选项（可多选）", list(q["options"].keys()), key=f"q{idx}")
+    
+    for choice in choices:
+        effects = q["options"].get(choice, {})
+        for dim, value in effects.items():
+            total_scores[dim] += value
+            total_scores_absol[dim] += abs(value)
 
 # 提交后展示结果
 if st.button("提交测试并查看结果"):
