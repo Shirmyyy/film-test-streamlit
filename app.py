@@ -5,7 +5,7 @@ import altair as alt
 import pandas as pd
 
 st.title("🎬 电影版《思想辩证区域》测试题")
-st.write("请直觉作答，不要思考太久，每题选出你最认同的选项。")
+st.write("请直觉作答，不要思考太久，每题选出你认同的选项（可多选）。")
 
 # 定义所有维度初始值
 dimensions = {
@@ -206,13 +206,14 @@ for dim in dimensions:
 
 for idx, q in enumerate(questions):
     st.subheader(q["question"])
-    choices = st.multiselect("选择你认同的选项（可多选）", list(q["options"].keys()), key=f"q{idx}")
+    st.markdown("（可多选）")
     
-    for choice in choices:
-        effects = q["options"].get(choice, {})
-        for dim, value in effects.items():
-            total_scores[dim] += value
-            total_scores_absol[dim] += abs(value)
+    for opt_text, effects in q["options"].items():
+        if st.checkbox(opt_text, key=f"q{idx}_{opt_text}"):
+            for dim, value in effects.items():
+                total_scores[dim] += value
+                total_scores_absol[dim] += abs(value)
+
 
 # 提交后展示结果
 if st.button("提交测试并查看结果"):
