@@ -251,11 +251,11 @@ if st.button("提交测试并查看结果"):
     })
 
     # 为了让 0 分也可视化，加一个“绘图用的微小值”
-    df["绘图得分"] = df["得分"].apply(lambda x: x if abs(x) > 0.01 else 0.01)
+    df["得分"] = df["得分"].apply(lambda x: x if abs(x) > 0.01 else 0.01)
 
     # 用于颜色映射
     def score_category(x):
-        if x > 0:
+        if x > 0.01:
             return "正"
         elif x < 0:
             return "负"
