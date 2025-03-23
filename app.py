@@ -271,7 +271,7 @@ if st.button("提交测试并查看结果"):
 
     # 条形图主体
     chart = alt.Chart(df).mark_bar().encode(
-        x=alt.X('绘图得分:Q', scale=alt.Scale(domain=[-1, 1])),
+        x=alt.X('得分:Q', scale=alt.Scale(domain=[-1, 1])),
         y=alt.Y('维度:N', sort=dimension_order),
         color=alt.Color('颜色类型:N', scale=color_scale, legend=None)
     ).properties(
